@@ -16,4 +16,12 @@
 /** @type {typeof import('@adonisjs/framework/src/Route/Manager')} */
 const Route = use('Route')
 
-Route.on('/').render('welcome')
+
+Route.post('/login', 'AuthController.login')
+  .validator('Login')
+Route.post('/login/refresh-token', 'AuthController.generateTokenWithRefresh')
+  .validator('LoginRefresh')
+Route.post('/logout', 'AuthController.logout')
+  .validator('LoginRefresh')
+Route.post('/register', 'AuthController.register')
+  .validator('RegisterUser')

@@ -31,9 +31,23 @@ class User extends Model {
    *
    * @return {Object}
    */
+
+  static get hidden () {
+    return ['password']
+  }
+
+  static get store () {
+    return ['username', 'email', 'password']
+  }
+
+  links () {
+    return this.hasMany('App/Models/Link', 'user_id', 'id')
+  }
+
   tokens () {
     return this.hasMany('App/Models/Token')
   }
+
 }
 
 module.exports = User
