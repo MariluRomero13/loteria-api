@@ -25,3 +25,6 @@ Route.post('/logout', 'AuthController.logout')
   .validator('LoginRefresh')
 Route.post('/register', 'AuthController.register')
   .validator('RegisterUser')
+
+Route.post('/generate-link', 'LinkController.generateLink').middleware(['auth:jwt'])
+Route.post('/verify-link', 'LinkController.verifyLink').middleware(['auth:jwt']).validator('VerifyLink')

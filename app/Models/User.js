@@ -41,7 +41,7 @@ class User extends Model {
   }
 
   links () {
-    return this.hasMany('App/Models/Link', 'user_id', 'id')
+    return this.hasMany('App/Models/Link', 'id', 'user_id')
   }
 
   tokens () {
