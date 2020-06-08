@@ -28,3 +28,4 @@ Route.post('/register', 'AuthController.register')
 
 Route.post('/generate-link', 'LinkController.generateLink').middleware(['auth:jwt'])
 Route.post('/verify-link', 'LinkController.verifyLink').middleware(['auth:jwt']).validator('VerifyLink')
+Route.post('/get-random-number', 'GameController.getRandomNumber').middleware(['auth:jwt'])

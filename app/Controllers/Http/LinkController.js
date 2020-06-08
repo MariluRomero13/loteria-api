@@ -8,17 +8,19 @@ const Link = use('App/Models/Link')
 const User = use('App/Models/User')
 class LinkController {
 
-  async generateLink({ auth, response }) {
+  async generateLink({ auth, response, request }) {
+    const userLogged = await auth.getUser()
+    await userLogged.links().update({ 'status': false  })
     const linkGenerated = Math.round((Math.pow(36, 30 + 1) - Math.random() * Math.pow(36, 30))).toString(36).slice(1)
-    const user = await auth.getUser()
     const link = new Link()
-    link.user_id = user.id
+    link.user_id = userLogged.id
     link.link = linkGenerated
+    link.way_to_play = parseInt(request.input('way_to_play'))
     await link.save()
     return response.ok(link)
   }
 
-  async verifyLink({ request, auth, response }) {
+  async verifyLink({ request, response }) {
     const link = request.input('link')
     const linkSelected = await Link.findBy('link', link)
     let status = false;
@@ -26,7 +28,6 @@ class LinkController {
       linkSelected.status ? status = true : status = false
     }
 
-    const userLogged = await auth.getUser()
     const user = await User.query().where('id', userLogged.id).with('links', (builder) => {
       builder.where('status', true)
     }).fetch()
