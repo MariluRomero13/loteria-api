@@ -5,8 +5,9 @@ class AuthController {
   async login({ request, response, auth }) {
     const { email, password } = request.only(['email', 'password'])
     const token = await auth.query().withRefreshToken().attempt(email, password, true)
+    const user = await User.findBy('email', email)
 
-    return response.ok(token)
+    return response.ok({ token, user })
   }
 
   async register ({ request, response, auth }) {

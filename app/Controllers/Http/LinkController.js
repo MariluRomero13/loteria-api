@@ -39,6 +39,18 @@ class LinkController {
     })
   }
 
+  async cancelLink({ request, response }) {
+    const linkSelected = await Link.findBy('link', link)
+    linkSelected.status = false
+    await linkSelected.save()
+
+    return response.created({
+      status: true,
+      message: 'Link cancelado correctamente',
+      data: ''
+    })
+  }
+
 }
 
 module.exports = LinkController
