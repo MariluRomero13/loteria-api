@@ -76,7 +76,7 @@ class GameController {
       })
     }
   }
-
+  /*
   async generateCard() {
     let newCardArray = [];
     for (let index = 0; index < 16;) {
@@ -92,6 +92,39 @@ class GameController {
       }
     }
     return newCardArray
+  }
+*/
+  //otro generador
+  //Hola Dios, perdoname
+  async generateCard(){
+    let a=[]
+    let cardNumbers=[]
+    let newCardArray = []
+    a=this.returnArray()
+
+    this.shuffle(a)
+
+    cardNumbers=a.slice(0,16)
+
+    for(let i=0;i<cardNumbers.length;i++){
+      const { img, sound } = this.getCardAndSound(cardNumbers[i])
+      newCardArray.push({ img, sound, cardNumber: cardNumbers[i] })
+    }
+
+    return newCardArray
+  }
+
+  shuffle(array=[]){
+    array.sort(() => Math.random() - 0.5);
+    return array
+  }
+
+  returnArray(array){
+    let arrayNumber = []
+    for (let index = 1; index <= 54; index++) {
+      arrayNumber.push(index)
+    }
+    return arrayNumber
   }
 
   reset() {
