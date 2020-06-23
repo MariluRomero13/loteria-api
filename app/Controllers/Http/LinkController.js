@@ -20,9 +20,10 @@ class LinkController {
     return response.ok(link)
   }
 
-  async verifyLink({ request, response }) {
+  async verifyLink({ auth,request, response }) {
     const link = request.input('link')
     const linkSelected = await Link.findBy('link', link)
+    const userLogged = await auth.getUser()
     let status = false;
     if (linkSelected) {
       linkSelected.status ? status = true : status = false
