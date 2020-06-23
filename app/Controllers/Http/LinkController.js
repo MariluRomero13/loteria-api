@@ -15,7 +15,7 @@ class LinkController {
     const link = new Link()
     link.user_id = userLogged.id
     link.link = linkGenerated
-    link.way_to_play = parseInt(request.input('way_to_play'))
+    //link.way_to_play = parseInt(request.input('way_to_play'))
     await link.save()
     return response.ok(link)
   }

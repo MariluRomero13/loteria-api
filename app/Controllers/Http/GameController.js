@@ -1,5 +1,6 @@
 'use strict'
 const Ws = use('Ws')
+const Env = use('Env')
 let randomArray = [];
 class GameController {
 
@@ -143,8 +144,9 @@ class GameController {
   }
 
   getCardAndSound(cardNumber) {
-    const img = `http://localhost:3333/img/${cardNumber}.jpg`
-    const sound = `http://localhost:3333/sounds/${cardNumber}.mp3`
+    const URL = Env.get('APP_URL')
+    const img = `${URL}/img/${cardNumber}.jpg`
+    const sound = `${URL}/sounds/${cardNumber}.mp3`
     return { img, sound }
   }
 }
