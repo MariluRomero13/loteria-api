@@ -16,3 +16,4 @@
 const Ws = use('Ws')
 
 Ws.channel('random', 'RandomController')
+Ws.channel('winner', 'WinnerController')

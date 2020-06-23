@@ -1,6 +1,7 @@
 'use strict'
 const Ws = use('Ws')
 const Env = use('Env')
+const User = use('App/Models/User')
 let randomArray = [];
 class GameController {
 
@@ -34,8 +35,13 @@ class GameController {
   //   }
   // }
 
-  async getRandomNumber({ request, response }) {
+  async getRandomNumber({ request, response, auth }) {
     const status = request.input('status')
+    const userLogged = await auth.getUser()
+    const userLink = await User.query().where('id', userLogged.id).with('links', (builder) => {
+      builder.where('status', true)
+    }).fetch()
+
     if (parseInt(status) !== 2) {
       if (parseInt(status)) {
         randomArray = this.reset()
@@ -62,12 +68,12 @@ class GameController {
           }
         }
         const { img, sound } = this.getCardAndSound(numSelected)
-        this.sendRandomNumber({ img, sound, cardNumber: randomNumber })
-        return response.ok({ img, sound, cardNumber: randomNumber, message: 'Juego en curso' })
+        this.sendRandomNumber({ img, sound, cardNumber: randomNumber, userLink })
+        return response.ok({ img, sound, cardNumber: randomNumber, message: 'Juego en curso', userLink })
       } else {
         const { img, sound } = this.getCardAndSound(randomArray[0])
-        this.sendRandomNumber({ img, sound, cardNumber: randomArray[0] })
-        return response.ok({ img, sound, cardNumber: randomArray[0], message: 'Juago finalizado' })
+        this.sendRandomNumber({ img, sound, cardNumber: randomArray[0], userLink })
+        return response.ok({ img, sound, cardNumber: randomArray[0], message: 'Juago finalizado', userLink })
       }
     } else {
       randomArray = this.reset()
@@ -148,6 +154,15 @@ class GameController {
     const img = `${URL}/img/${cardNumber}.jpg`
     const sound = `${URL}/sounds/${cardNumber}.mp3`
     return { img, sound }
+  }
+
+  async getWinner({ auth, response }) {
+    const userLogged = await auth.getUser()
+    const topic = Ws.getChannel('winner').topic('winner')
+    if (topic) {
+      topic.broadcast('new:winner', userLogged)
+    }
+    return response.ok(userLogged)
   }
 }
 
