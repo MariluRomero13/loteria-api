@@ -76,6 +76,11 @@ class GameController {
         return response.ok({ img, sound, cardNumber: randomArray[0], message: 'Juago finalizado', userLink })
       }
     } else {
+
+     const topic = Ws.getChannel('winner').topic('winner')
+     if (topic) {
+        topic.broadcast('new:winner', userLogged)
+      }
       randomArray = this.reset()
       return response.ok({
         status: false,
