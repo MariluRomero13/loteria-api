@@ -2,7 +2,7 @@
 const Ws = use('Ws')
 const Env = use('Env')
 const User = use('App/Models/User')
-let randomArray = [];
+let randomArray = []
 class GameController {
 
   // async getRandomNumber({ request, response }) {
@@ -36,57 +36,84 @@ class GameController {
   // }
 
   async getRandomNumber({ request, response, auth }) {
-    const status = request.input('status')
-    const userLogged = await auth.getUser()
-    const userLink = await User.query().where('id', userLogged.id).with('links', (builder) => {
+    const userData = await User.query().where('id', auth.user.id).with('links', (builder) => {
       builder.where('status', true)
     }).fetch()
+    
+    const isFirstTime = request.input('is_first_time')
+    if (isFirstTime) {
+      this.resetCards()
+    }
 
-    if (parseInt(status) !== 2) {
-      if (parseInt(status)) {
-        randomArray = this.reset()
-      }
-      let randomNumber = Math.floor(Math.random() * 55)
-      if (randomNumber === -1 || randomNumber === 0) {
-        randomNumber = 1
-      }
-
-      if (randomArray.length > 1) {
-        let numSelected = randomArray.filter((num) => num === randomNumber)
-        if (numSelected.length > 0) {
-          randomArray = randomArray.filter(num => num !== numSelected[0])
-        }
-        while (numSelected.length === 0) {
-          randomNumber = Math.floor(Math.random() * 55)
-          if (randomNumber === -1 || randomNumber === 0) {
-            randomNumber = 1
-          }
-          numSelected = randomArray.filter((num) => num === randomNumber)
-          if (numSelected.length > 0) {
-            randomArray = randomArray.filter(num => num !== numSelected[0])
-            break;
-          }
-        }
-        const { img, sound } = this.getCardAndSound(numSelected)
-        this.sendRandomNumber({ img, sound, cardNumber: randomNumber, userLink })
-        return response.ok({ img, sound, cardNumber: randomNumber, message: 'Juego en curso', userLink })
-      } else {
-        const { img, sound } = this.getCardAndSound(randomArray[0])
-        this.sendRandomNumber({ img, sound, cardNumber: randomArray[0], userLink })
-        return response.ok({ img, sound, cardNumber: randomArray[0], message: 'Juago finalizado', userLink })
-      }
-    } else {
-
-     const topic = Ws.getChannel('winner').topic('winner')
-     if (topic) {
-        topic.broadcast('new:winner', userLogged)
-      }
-      randomArray = this.reset()
-      return response.ok({
+    if (!randomArray.length) {
+      return response.methodNotAllowed({
         status: false,
-        message: 'Juego finalizado ya hubo un ganador'
+        message: "the cards are over"
       })
     }
+
+    let number
+    if(randomArray.length % 2 == 0) {
+      number = randomArray.shift()
+    } else {
+      number = randomArray.pop()
+    }
+
+    const { img, sound } = this.getCardAndSound(number)
+    this.sendRandomNumber({ img, sound, cardNumber: number, userData })
+    return response.ok({ img, sound, cardNumber: number, userData })
+    
+    // const status = request.input('status')
+    // const userLogged = await auth.getUser()
+    // const userLink = await User.query().where('id', userLogged.id).with('links', (builder) => {
+    //   builder.where('status', true)
+    // }).fetch()
+
+    // if (parseInt(status) !== 2) {
+    //   if (parseInt(status)) {
+    //     randomArray = this.reset()
+    //   }
+    //   let randomNumber = Math.floor(Math.random() * 55)
+    //   if (randomNumber === -1 || randomNumber === 0) {
+    //     randomNumber = 1
+    //   }
+
+    //   if (randomArray.length > 1) {
+    //     let numSelected = randomArray.filter((num) => num === randomNumber)
+    //     if (numSelected.length > 0) {
+    //       randomArray = randomArray.filter(num => num !== numSelected[0])
+    //     }
+    //     while (numSelected.length === 0) {
+    //       randomNumber = Math.floor(Math.random() * 55)
+    //       if (randomNumber === -1 || randomNumber === 0) {
+    //         randomNumber = 1
+    //       }
+    //       numSelected = randomArray.filter((num) => num === randomNumber)
+    //       if (numSelected.length > 0) {
+    //         randomArray = randomArray.filter(num => num !== numSelected[0])
+    //         break;
+    //       }
+    //     }
+    //     const { img, sound } = this.getCardAndSound(numSelected)
+    //     this.sendRandomNumber({ img, sound, cardNumber: randomNumber, userLink })
+    //     return response.ok({ img, sound, cardNumber: randomNumber, message: 'Juego en curso', userLink })
+    //   } else {
+    //     const { img, sound } = this.getCardAndSound(randomArray[0])
+    //     this.sendRandomNumber({ img, sound, cardNumber: randomArray[0], userLink })
+    //     return response.ok({ img, sound, cardNumber: randomArray[0], message: 'Juago finalizado', userLink })
+    //   }
+    // } else {
+
+    //  const topic = Ws.getChannel('winner').topic('winner')
+    //  if (topic) {
+    //     topic.broadcast('new:winner', userLogged)
+    //   }
+    //   randomArray = this.reset()
+    //   return response.ok({
+    //     status: false,
+    //     message: 'Juego finalizado ya hubo un ganador'
+    //   })
+    // }
   }
   /*
   async generateCard() {
@@ -126,6 +153,11 @@ class GameController {
     return newCardArray
   }
 
+  resetCards () {
+    randomArray = this.reset()
+    this.shuffle(randomArray)
+  }
+
   shuffle(array=[]){
     array.sort(() => Math.random() - 0.5);
     return array
@@ -161,13 +193,14 @@ class GameController {
     return { img, sound }
   }
 
-  async getWinner({ auth, response }) {
-    const userLogged = await auth.getUser()
+  async getWinner({ auth, response, request }) {
+    const user = await auth.getUser()
+    const winnerMode = request.input('winner_mode')
     const topic = Ws.getChannel('winner').topic('winner')
     if (topic) {
-      topic.broadcast('new:winner', userLogged)
+      topic.broadcast('new:winner', { user, winnerMode })
     }
-    return response.ok(userLogged)
+    return response.ok(user)
   }
 }
 
